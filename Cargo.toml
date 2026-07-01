@@ -12,8 +12,6 @@ members = [
 [dependencies]
 clap = { version = "4.6.1", features = ["derive"] }
 fintrack_data = { version = "0.1.0", path = "crates/fintrack_data" }
-reqwest = "0.13.4"
-smol = "2.0.2"
 
 [[bin]]
 name = "fintrack-cli"

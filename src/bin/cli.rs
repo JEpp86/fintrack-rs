@@ -54,7 +54,7 @@ fn main() -> Result<(), std::io::Error> {
                     let client = FmpEndpoint::new(api_key);
                     //let result = client.get_endpoint(Endpoints::Quote);
                     let result = client.get_info(&args.symbol);
-                    println!("Result: {:?}", result);
+                    println!("Result: {}", result.as_str());
                 }
                 "av" => {
                     print!("AlphaVantage backend not implemented")
