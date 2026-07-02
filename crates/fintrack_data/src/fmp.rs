@@ -1,8 +1,6 @@
 // Implementation of the Financial Modelling Prep API endpoints
 // URL: https://site.financialmodelingprep.com/
 
-use std::backtrace;
-
 use crate::ticker::{Endpoint, Endpoints};
 
 use async_compat::Compat;
@@ -10,6 +8,7 @@ use reqwest;
 use serde::Deserialize;
 use serde_json;
 use smol;
+use std::io::Error;
 
 #[derive(Deserialize)]
 struct FmpInfo {
@@ -47,7 +46,6 @@ impl FmpEndpoint {
         match endpoint {
             Endpoints::StockInfo => {
                 format!(
-                    //"https://financialmodelingprep.com/stable/search-symbol?query={}&apikey={}",
                     "https://financialmodelingprep.com/stable/profile?symbol={}&apikey={}",
                     symbol, self.key
                 )
@@ -69,26 +67,48 @@ impl FmpEndpoint {
 }
 
 impl Endpoint for FmpEndpoint {
-    fn get_info(&self, symbol: &str) -> String {
+    fn get_info(&self, symbol: &str) -> Result<String, String> {
         let url = self.get_endpoint(symbol, Endpoints::StockInfo);
-        let result: Result<String, reqwest::Error> = smol::block_on(async {
-            let body = Compat::new(reqwest::get(&url))
+        let result: Result<serde_json::Value, reqwest::Error> = smol::block_on(async {
+            let response = Compat::new(reqwest::get(&url))
                 .await?
                 .json::<serde_json::Value>()
                 .await?;
-            Ok(serde_json::to_string_pretty(&body[0]).unwrap_or_default())
+            Ok(response[0].clone())
         });
-        result.unwrap_or_default()
+        let op = serde_json::to_string_pretty(&result.expect("Unable to parse JSON response"))
+            .expect("Unable to format JSON response");
+        Ok(op)
     }
 
-    fn get_historical_data(&self, symbol: &str, start: &str, end: &str) -> String {
-        self.get_endpoint(
+    fn get_historical_data(&self, symbol: &str, start: &str, end: &str) -> Result<String, String> {
+        let url = self.get_endpoint(
             symbol,
             Endpoints::HistoricalData(start.to_string(), end.to_string()),
-        )
+        );
+        let result: Result<serde_json::Value, reqwest::Error> = smol::block_on(async {
+            let response = Compat::new(reqwest::get(&url))
+                .await?
+                .json::<serde_json::Value>()
+                .await?;
+            Ok(response[0].clone())
+        });
+        let op = serde_json::to_string_pretty(&result.expect("Unable to parse JSON response"))
+            .expect("Unable to format JSON response");
+        Ok(op)
     }
 
-    fn get_quote(&self, symbol: &str) -> String {
-        self.get_endpoint(symbol, Endpoints::Quote)
+    fn get_quote(&self, symbol: &str) -> Result<String, String> {
+        let url = self.get_endpoint(symbol, Endpoints::Quote);
+        let result: Result<serde_json::Value, reqwest::Error> = smol::block_on(async {
+            let response = Compat::new(reqwest::get(&url))
+                .await?
+                .json::<serde_json::Value>()
+                .await?;
+            Ok(response[0].clone())
+        });
+        let op = serde_json::to_string_pretty(&result.expect("Unable to parse JSON response"))
+            .expect("Unable to format JSON response");
+        Ok(op)
     }
 }

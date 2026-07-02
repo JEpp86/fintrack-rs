@@ -51,10 +51,11 @@ fn main() -> Result<(), std::io::Error> {
             println!("Query: {}", args.symbol);
             match &backend[..] {
                 "fmp" => {
-                    let client = FmpEndpoint::new(api_key);
-                    //let result = client.get_endpoint(Endpoints::Quote);
-                    let result = client.get_info(&args.symbol);
-                    println!("Result: {}", result.as_str());
+                    let result = FmpEndpoint::new(api_key).get_info(&args.symbol);
+                    match result {
+                        Ok(value) => println!("Resuls: {}", value),
+                        Err(err) => println!("Error: {}", err.to_string()),
+                    }
                 }
                 "av" => {
                     print!("AlphaVantage backend not implemented")
@@ -67,6 +68,22 @@ fn main() -> Result<(), std::io::Error> {
         }
         Action::Quote(args) => {
             println!("Quote: {}", args.symbol);
+            match &backend[..] {
+                "fmp" => {
+                    let result = FmpEndpoint::new(api_key).get_quote(&args.symbol);
+                    match result {
+                        Ok(value) => println!("Resuls: {}", value),
+                        Err(err) => println!("Error: {}", err.to_string()),
+                    }
+                }
+                "av" => {
+                    print!("AlphaVantage backend not implemented")
+                }
+                _ => {
+                    eprintln!("Invalid backend: {}", backend);
+                    std::process::exit(1);
+                }
+            }
         }
     }
 
