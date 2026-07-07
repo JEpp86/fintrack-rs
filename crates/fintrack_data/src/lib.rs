@@ -1,8 +1,8 @@
+mod endpoint;
 mod fmp;
-mod ticker;
 
+pub use endpoint::*;
 pub use fmp::*;
-pub use ticker::*;
 
 // pub fn add(left: u64, right: u64) -> u64 {
 //     left + right
