@@ -23,7 +23,7 @@ pub enum Endpoints {
 }
 
 impl Endpoints {
-    fn get_endpoint(&self, key: &str, query: QueryType) -> String {
+    pub fn get_endpoint(&self, key: &str, query: QueryType) -> String {
         match self {
             Endpoints::FinancialModelPrep => self.get_fmp_endpoint(key, query),
             Endpoints::AlphaVantage => self.get_av_endpoint(key, query),
