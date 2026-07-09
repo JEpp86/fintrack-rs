@@ -1,5 +1,8 @@
 use clap::{Args, Parser, Subcommand};
-use fintrack_data::{Endpoints::FinancialModelPrep, *};
+use fintrack_data::{
+    Endpoints::{AlphaVantage, FinancialModelPrep},
+    *,
+};
 use std::fs;
 
 /// Command line iterface to query financial data
@@ -56,7 +59,9 @@ fn main() -> Result<(), std::io::Error> {
                     println!("Result: {}", result);
                 }
                 "av" => {
-                    print!("AlphaVantage backend not implemented")
+                    let result = AlphaVantage
+                        .get_endpoint(&api_key, QueryType::Info(String::from(&args.symbol)));
+                    println!("Result: {}", result);
                 }
                 _ => {
                     eprintln!("Invalid backend: {}", backend);
@@ -68,14 +73,14 @@ fn main() -> Result<(), std::io::Error> {
             println!("Quote: {}", args.symbol);
             match &backend[..] {
                 "fmp" => {
-                    // let result = FmpEndpoint::new(api_key).get_quote(&args.symbol);
-                    // match result {
-                    //     Ok(value) => println!("Resuls: {}", value),
-                    //     Err(err) => println!("Error: {}", err.to_string()),
-                    // }
+                    let result = FinancialModelPrep
+                        .get_endpoint(&api_key, QueryType::Quote(String::from(&args.symbol)));
+                    println!("Result: {}", result);
                 }
                 "av" => {
-                    print!("AlphaVantage backend not implemented")
+                    let result = AlphaVantage
+                        .get_endpoint(&api_key, QueryType::Quote(String::from(&args.symbol)));
+                    println!("Result: {}", result);
                 }
                 _ => {
                     eprintln!("Invalid backend: {}", backend);
