@@ -5,19 +5,6 @@ use smol;
 use crate::AvEndpoint;
 use crate::FmpEndpoint;
 
-// pub struct Ticker {
-//     pub symbol: String,
-//     // key: String,
-//     endpoint: Box<dyn Endpoint>,
-// }
-
-// pub trait Endpoint {
-//     // fn get_endpoint(&self, endpoint: Endpoints) -> String;
-//     fn get_info(&self, symbol: &str) -> Result<String, String>;
-//     fn get_historical_data(&self, symbol: &str, start: &str, end: &str) -> Result<String, String>;
-//     fn get_quote(&self, symbol: &str) -> Result<String, String>;
-// }
-
 pub enum Endpoints {
     FinancialModelPrep,
     AlphaVantage,
@@ -33,12 +20,30 @@ impl Endpoints {
 
     fn get_fmp_endpoint(&self, key: &str, query: QueryType) -> String {
         let url = FmpEndpoint::new(key).get_endpoint(query);
-        get_request(&url)
+        Self::get_request(&url)
     }
 
     fn get_av_endpoint(&self, key: &str, query: QueryType) -> String {
         let url = AvEndpoint::new(key).get_endpoint(query);
-        get_request(&url)
+        Self::get_request(&url)
+    }
+
+    fn get_request(url: &str) -> String {
+        println!("Endpoint: {url}");
+        let result: Result<serde_json::Value, reqwest::Error> = smol::block_on(async {
+            let response = Compat::new(reqwest::get(url))
+                .await?
+                .json::<serde_json::Value>()
+                .await?;
+            Ok(response.clone())
+        });
+        let result =
+            result.unwrap_or_else(|_| serde_json::Value::String(String::from("API Request Error")));
+        if result.is_array() {
+            return serde_json::to_string_pretty(&result[0])
+                .expect("Unable to format JSON response");
+        }
+        serde_json::to_string_pretty(&result).expect("Unable to format JSON response")
     }
 }
 
@@ -47,17 +52,3 @@ pub enum QueryType {
     Quote(String),
     HistoricalData(String, String, String),
 }
-
-// impl QueryType {
-fn get_request(url: &str) -> String {
-    let result: Result<serde_json::Value, reqwest::Error> = smol::block_on(async {
-        let response = Compat::new(reqwest::get(url))
-            .await?
-            .json::<serde_json::Value>()
-            .await?;
-        Ok(response[0].clone())
-    });
-    serde_json::to_string_pretty(&result.expect("Unable to parse JSON response"))
-        .expect("Unable to format JSON response")
-}
-// }
